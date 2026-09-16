@@ -1,0 +1,8 @@
+# Normalise to LF in the repository. The webapp is uploaded to a Linux host, and
+# a checkout on Windows should not decide what the server receives.
+* text=auto eol=lf
+
+*.png  binary
+*.jpg  binary
+*.zip  binary
+*.docx binary

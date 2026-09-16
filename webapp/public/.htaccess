@@ -1,0 +1,50 @@
+# Golden Opportunities approval app.
+# Apache config for cPanel shared hosting. No PHP settings live here on purpose:
+# php_value only works under mod_php and throws a 500 under LSAPI/FPM, which is
+# what cPanel EA-PHP actually runs. PHP settings are in .user.ini instead.
+
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # CGI, FastCGI and LSAPI drop the Authorization header before PHP sees it.
+  # Without this every agent request returns 401 on the real host while working
+  # perfectly on a local Apache. This is the single most common deployment
+  # failure for a bearer-token API on shared hosting.
+  RewriteCond %{HTTP:Authorization} .
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+  # Everything that is not a real file goes to the front controller.
+  # The substitution is a literal filename, never a captured segment: Apache
+  # treats a substitution shaped like "scheme:rest" as an external redirect,
+  # which is what would otherwise break /api/v1/agent/metrics:bulk-upsert.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.php [L,QSA]
+</IfModule>
+
+# Belt and braces for the Authorization header on hosts where the rewrite
+# condition above is not enough.
+<IfModule mod_setenvif.c>
+  SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "no-referrer"
+</IfModule>
+
+# Never serve a dotfile, a backup or a SQL dump.
+<FilesMatch "(^\.|\.(sql|md|json|lock|bak|old|orig|dist|ini)$)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+  </IfModule>
+</FilesMatch>

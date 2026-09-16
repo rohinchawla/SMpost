@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">
+  <!--
+    Golden Opportunities - the approval app's icon sprite.
+
+    Twelve glyphs, one stroke system: 24x24 viewBox, stroke-width 1.5,
+    round caps and joins, fill none, stroke currentColor, so an icon takes
+    the colour of the text it sits beside and never carries colour of its
+    own. There is no emoji anywhere in this product and no unicode glyph
+    standing in for a mark: every icon here is drawn.
+
+    Use:  <svg class="go-icon" aria-hidden="true"><use href="/assets/icons.svg#i-check"/></svg>
+    An icon that is the only label on a control needs a .u-sr-only word
+    beside it; an icon next to text is aria-hidden.
+
+    Geometry is drawn on a 24-unit grid with a 2-unit margin, so the glyphs
+    optically match at 16px, the size .go-icon renders them at.
+  -->
+
+  <!-- Approved. The verdict control's first segment, and a traced number. -->
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 12.5 9.5 17 19 7" />
+  </symbol>
+
+  <!-- Rejected. Also the chip remove and the dialog dismiss. -->
+  <symbol id="i-cross" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6.5 6.5 17.5 17.5" />
+    <path d="M17.5 6.5 6.5 17.5" />
+  </symbol>
+
+  <!-- Hold. A decision deferred, not a decision made. -->
+  <symbol id="i-pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9.5 6v12" />
+    <path d="M14.5 6v12" />
+  </symbol>
+
+  <!-- Pending. Drawn as a ring so it carries the same stroke weight as the
+       rest of the set rather than a solid blob. -->
+  <symbol id="i-dot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4" />
+  </symbol>
+
+  <!-- A source URL, opening off this app. -->
+  <symbol id="i-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10.5 5.5H7A1.5 1.5 0 0 0 5.5 7v10A1.5 1.5 0 0 0 7 18.5h10a1.5 1.5 0 0 0 1.5-1.5v-3.5" />
+    <path d="M14 5.5h4.5V10" />
+    <path d="M18.5 5.5 11 13" />
+  </symbol>
+
+  <!-- Disclosure: the select control, an expandable row, the mobile nav. -->
+  <symbol id="i-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 9.5 12 15.5 18 9.5" />
+  </symbol>
+
+  <!-- The nav disclosure summary under 720px. -->
+  <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4.5 7h15" />
+    <path d="M4.5 12h15" />
+    <path d="M4.5 17h15" />
+  </symbol>
+
+  <!-- Scheduled: the Wednesday research run, the 08:00 publish slot. -->
+  <symbol id="i-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="4" y="5.5" width="16" height="14" rx="2" />
+    <path d="M4 10h16" />
+    <path d="M8.5 3.5v4" />
+    <path d="M15.5 3.5v4" />
+  </symbol>
+
+  <!-- A run that failed, or a package parked as needs_human. -->
+  <symbol id="i-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 4.5 20.5 19.5H3.5Z" />
+    <path d="M12 10v4" />
+    <path d="M12 17h.01" />
+  </symbol>
+
+  <!-- Re-run a checker round, or retry a failed publish. -->
+  <symbol id="i-replay" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 12a7 7 0 1 1-2.05-4.95" />
+    <path d="M19 4.5V9h-4.5" />
+  </symbol>
+
+  <!-- Published to the company page. -->
+  <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="8" />
+    <path d="M4 12h16" />
+    <path d="M12 4c2.4 2.6 2.4 13.4 0 16" />
+    <path d="M12 4c-2.4 2.6-2.4 13.4 0 16" />
+  </symbol>
+
+  <!-- One of the two image options from A3. -->
+  <symbol id="i-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3.5" y="5" width="17" height="14" rx="2" />
+    <circle cx="9" cy="10" r="1.5" />
+    <path d="M5 17.5 9.5 13l3 3 2.5-2.5 4 4" />
+  </symbol>
+</svg>

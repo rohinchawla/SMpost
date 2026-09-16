@@ -1,0 +1,28 @@
+{
+  "slug": "bgv",
+  "hook": "Your degree checks are clean. Your employment checks are not.",
+  "body": "Your degree checks are clean. Your employment checks are not.\n\nAcross white-collar hiring in India, employment verification now shows a discrepancy rate of 11.15%.\n\nAddress verification sits at 7.68%.\n\nMost BGV budgets are still weighted towards education.\n\nThat is one in nine senior hires walking in on a claim nobody confirmed.\n\nWhere does your current check actually stop?",
+  "hashtags": ["#BackgroundVerification", "#TalentAcquisition", "#HiringIndia", "#GoldenOpportunities"],
+  "keywords": ["background verification", "employment verification", "discrepancy rate", "senior hiring"],
+  "cta_text": "Free 15-minute review of your current BGV coverage gaps",
+  "cta_target": "rc@gojobs.biz",
+  "first_comment_text": "Happy to run a 15-minute review of where your current checks stop: rc@gojobs.biz",
+  "numbers_used": [
+    {
+      "value": "11.15%",
+      "source_quote": "Among white-collar hires, employment verification emerged as the most impacted category, with a discrepancy rate of 11.15%, followed by address verification at 7.68%.",
+      "source_url": "https://www.storyboard18.com/how-it-works/hiring-discrepancies-persist-in-h1-fy26-on-demand-workforce-faces-higher-risks-authbridge-report-90104.htm"
+    },
+    {
+      "value": "7.68%",
+      "source_quote": "Among white-collar hires, employment verification emerged as the most impacted category, with a discrepancy rate of 11.15%, followed by address verification at 7.68%.",
+      "source_url": "https://www.storyboard18.com/how-it-works/hiring-discrepancies-persist-in-h1-fy26-on-demand-workforce-faces-higher-risks-authbridge-report-90104.htm"
+    }
+  ],
+  "image_brief": {
+    "subject": "A stack of employment records under a desk lamp, one file open and set apart from the rest",
+    "mood": "quiet scrutiny, a detail noticed late",
+    "palette": "deep navy, warm amber lamplight, muted paper tones",
+    "must_avoid": ["text", "logos", "faces", "handshake", "magnifying glass cliche"]
+  }
+}

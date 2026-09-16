@@ -1,0 +1,59 @@
+{
+  "$comment": "A1's research surface. seedSources are from the owner's brief; indiaSources were added because 6 of the 8 originals are UK/US-centric and the audience is Indian.",
+  "version": "1.0.0",
+  "seedSources": [
+    { "url": "https://theundercoverrecruiter.com/", "name": "The Undercover Recruiter", "region": "UK", "weight": 1.0, "styleReference": true },
+    { "url": "https://www.textkernel.com/learn-support/blog/", "name": "Textkernel Blog", "region": "EU", "weight": 0.9 },
+    { "url": "https://www.recruiter.co.uk/news", "name": "Recruiter UK", "region": "UK", "weight": 0.8 },
+    { "url": "https://www.ere.net/", "name": "ERE", "region": "US", "weight": 0.9 },
+    { "url": "https://www.talentlyft.com/template/blog-manager-interview-questions", "name": "TalentLyft", "region": "EU", "weight": 0.7 },
+    { "url": "https://www.hrmorning.com/", "name": "HR Morning", "region": "US", "weight": 0.8 },
+    { "url": "https://talentculture.com/articles/", "name": "TalentCulture", "region": "US", "weight": 0.8 },
+    { "url": "https://www.octanner.com/resources", "name": "O.C. Tanner", "region": "US", "weight": 0.7 }
+  ],
+  "indiaSources": [
+    { "url": "https://www.peoplematters.in/", "name": "People Matters", "region": "IN", "weight": 1.2 },
+    { "url": "https://hr.economictimes.indiatimes.com/", "name": "ETHRWorld", "region": "IN", "weight": 1.2 },
+    { "url": "https://www.shrm.org/in", "name": "SHRM India", "region": "IN", "weight": 1.1 },
+    { "url": "https://nasscom.in/knowledge-centre", "name": "NASSCOM Knowledge Centre", "region": "IN", "weight": 1.1 },
+    { "url": "https://www.naukri.com/blog/category/jobspeak/", "name": "Naukri JobSpeak Index", "region": "IN", "weight": 1.2 },
+    { "url": "https://www.teamlease.com/insights/", "name": "TeamLease Insights", "region": "IN", "weight": 1.1 },
+    { "url": "https://www.epfindia.gov.in/site_en/index.php", "name": "EPFO payroll releases", "region": "IN", "weight": 1.0 },
+    { "url": "https://www.business-standard.com/topic/hr", "name": "Business Standard HR", "region": "IN", "weight": 1.0 }
+  ],
+  "googleQueries": [
+    "how enterprise recruitment is done in India 2026",
+    "challenges Indian HR heads face hiring 2026",
+    "recruitment solutions Indian enterprises implement",
+    "offer decline rate India hiring notice period",
+    "GCC hiring India talent competition",
+    "attrition benchmark India IT BFSI manufacturing",
+    "tier 2 city hiring India talent supply",
+    "time to hire cost per hire benchmark India"
+  ],
+  "domainBlocklist": [
+    "indeed.com/career-advice",
+    "zety.com",
+    "resume.io",
+    "novoresume.com",
+    "themuse.com",
+    "glassdoor.com/blog"
+  ],
+  "$domainBlocklistNote": "Candidate-facing and SEO-farm content. Our audience is the employer, not the job seeker.",
+  "themeVocabulary": [
+    "attrition", "early_attrition", "gcc_hiring", "offer_dropouts", "notice_period",
+    "compliance", "tier2_hiring", "time_to_hire", "cost_per_hire", "employer_brand",
+    "interview_process", "comp_benchmarking", "contract_staffing", "workforce_planning",
+    "leadership_hiring", "background_verification", "campus_hiring", "diversity_hiring",
+    "internal_mobility", "hiring_manager_enablement"
+  ],
+  "postTypes": [
+    { "id": "contrarian_take", "wordCap": 100, "share": [0.10, 0.25] },
+    { "id": "data_point", "wordCap": 100, "share": [0.10, 0.25] },
+    { "id": "client_problem", "wordCap": 100, "share": [0.10, 0.25] },
+    { "id": "framework", "wordCap": 100, "share": [0.10, 0.25] },
+    { "id": "myth_bust", "wordCap": 100, "share": [0.10, 0.25] },
+    { "id": "seasonal_compliance", "wordCap": 100, "share": [0.10, 0.25] }
+  ],
+  "$postTypeNote": "All capped at 100 body words per the owner's decision. Hashtags and the CTA line are excluded from the count."
+}

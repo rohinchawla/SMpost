@@ -1,0 +1,387 @@
+openapi: 3.1.0
+info:
+  title: Golden Opportunities - LinkedIn approval API
+  version: 1.0.0
+  description: |
+    The contract between the six agents and the approval web app.
+
+    Part 1 (the agents) is written against this. Part 2 (the PHP + MySQL app on
+    cPanel) implements it. `mock-api/server.mjs` is a working reference
+    implementation, and `tests/contract.test.mjs` is the acceptance suite: Part 2
+    is finished when that suite runs green against the real host.
+
+    Two surfaces, deliberately disjoint:
+      /api/v1/agent/**  bearer token, one key per agent, scope-checked
+      /api/v1/ui/**     session cookie, the screens Rohin clicks
+
+    An agent key must never be accepted on a UI route, and a session must never
+    be accepted on an agent route.
+
+servers:
+  - url: https://app.gojobs.biz
+    description: production (cPanel)
+  - url: http://127.0.0.1:8787
+    description: local mock
+
+security:
+  - agentBearer: []
+
+tags:
+  - name: runs
+    description: Job log. Every run writes a row, including one that did nothing.
+  - name: A1
+    description: Topic scouting
+  - name: A2
+    description: Copywriting
+  - name: A3 / A4
+    description: Images and packaging
+  - name: A5
+    description: Publishing
+  - name: A6
+    description: Analytics
+
+components:
+  securitySchemes:
+    agentBearer:
+      type: http
+      scheme: bearer
+      description: One key per agent, carrying only that agent's scopes.
+
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: { type: string }
+      description: |
+        Same key with the same body replays the stored response and returns
+        `Idempotency-Replayed: true`. Same key with a different body is a 409.
+        This is what makes a retry after an ambiguous timeout safe.
+
+  schemas:
+    Error:
+      type: object
+      required: [error, request_id, server_time]
+      properties:
+        error:
+          type: object
+          required: [code, message, retryable]
+          properties:
+            code:
+              type: string
+              description: |
+                One of UNAUTHORIZED, FORBIDDEN_SCOPE, NOT_FOUND, VALIDATION_FAILED,
+                WORD_COUNT_EXCEEDED, LINK_IN_BODY, SHA256_MISMATCH,
+                DUPLICATE_RUN_SLOT, IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_BODY,
+                ILLEGAL_TRANSITION, TOPIC_NOT_APPROVED, POST_NOT_APPROVED,
+                NO_IMAGE_SELECTED, CONTENT_CHANGED_AFTER_APPROVAL, POST_EXPIRED,
+                LEASE_HELD_BY_OTHER_RUN, ALREADY_POSTED, RATE_LIMITED,
+                SERVICE_UNAVAILABLE, INTERNAL
+            message: { type: string }
+            retryable:
+              type: boolean
+              description: |
+                The single flag every agent branches on. true means back off and
+                retry. false means stop; do not reword the request to get around it.
+            details: { type: object }
+        request_id: { type: string }
+        server_time: { type: string, format: date-time }
+
+    Run:
+      type: object
+      properties:
+        run_uid: { type: string, format: uuid }
+        agent_code: { type: string, enum: [A1, A2, A3, A4, A5, A6] }
+        status:
+          type: string
+          enum: [running, succeeded, partial, failed, skipped, timed_out]
+          description: skipped is a first-class outcome, not an error.
+        business_date_ist: { type: string, format: date }
+        attempt: { type: integer }
+        dry_run: { type: boolean }
+        items_in: { type: integer }
+        items_ok: { type: integer }
+        items_failed: { type: integer }
+        skip_reason: { type: string, nullable: true }
+
+    Topic:
+      type: object
+      properties:
+        topic_uid: { type: string, format: uuid }
+        title:
+          type: string
+          description: The owner's current version. His edit always wins.
+        one_liner: { type: string }
+        source_url: { type: string }
+        source_quote:
+          type: string
+          description: |
+            Verbatim from the source page. Every number A2 later writes traces
+            back to this sentence.
+        post_type: { type: string }
+        theme_tag: { type: string }
+        india_relevance: { type: integer, minimum: 0, maximum: 2 }
+        was_edited: { type: boolean }
+        provenance:
+          type: object
+          description: What A1 originally wrote, kept for the record. Read-only.
+          properties:
+            original_title: { type: string }
+            original_one_liner: { type: string }
+
+    Post:
+      type: object
+      properties:
+        post_uid: { type: string, format: uuid }
+        hook:
+          type: string
+          maxLength: 125
+          description: The first line of the body, verbatim. Must fit before "see more".
+        body:
+          type: string
+          description: |
+            Max 100 words, counting the body only. Hashtag-only lines and the CTA
+            line are excluded. Must contain no URL - a link in the body suppresses
+            reach, so it goes in first_comment_text instead.
+        hashtags:
+          type: array
+          minItems: 3
+          maxItems: 5
+          items: { type: string }
+        keywords:
+          type: array
+          items: { type: string }
+        first_comment_text:
+          type: string
+          description: Where the link lives. A5 posts this as a comment within two minutes.
+        numbers_used:
+          type: array
+          description: |
+            One entry for every numeral in the body. Without a matching verbatim
+            source_quote the post is refused.
+          items:
+            type: object
+            properties:
+              value: { type: string }
+              source_quote: { type: string }
+              source_url: { type: string }
+        review_status:
+          type: string
+          enum: [pending, approved, rejected, hold]
+          description: The owner's verdict. Never written by an agent.
+        lifecycle_state:
+          type: string
+          enum: [draft, images_pending, images_ready, in_review, ready, scheduled, publishing, posted, failed, expired, archived]
+          description: |
+            Machine progress, deliberately separate from review_status. Merging
+            them would let a dropdown un-post something already live on LinkedIn.
+
+paths:
+  /healthz:
+    get:
+      security: []
+      summary: Liveness
+      responses: { '200': { description: ok } }
+
+  /api/v1/agent/runs:
+    post:
+      tags: [runs]
+      summary: Open a run
+      description: |
+        Required before any other call. A 409 DUPLICATE_RUN_SLOT means another
+        instance already owns today's slot for this agent - that is not an error,
+        and the agent should exit 0.
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      responses:
+        '201': { description: run opened }
+        '200': { description: this run_uid already existed; replayed }
+        '409': { description: another run owns this slot, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /api/v1/agent/runs/{runUid}:
+    patch:
+      tags: [runs]
+      summary: Close a run
+      description: |
+        Always call this, including when nothing was done. A run closed
+        `skipped` with a reason is how absence becomes visible; silence is the
+        failure mode nobody notices.
+      responses: { '200': { description: closed } }
+
+  /api/v1/agent/runs/{runUid}/events:
+    post:
+      tags: [runs]
+      summary: Append structured log lines
+      responses: { '201': { description: accepted } }
+
+  /api/v1/agent/dead-letters:
+    post:
+      tags: [runs]
+      summary: Record something that cannot make progress
+      description: |
+        Repeat failures deduplicate into one row with a rising attempts count, so
+        six bad days appear as one item on the ops list rather than six.
+      responses: { '201': { description: recorded }, '200': { description: deduplicated } }
+
+  /api/v1/agent/config:
+    get:
+      summary: Limits and company constants
+      description: Read from here rather than hardcoding 100 in five places.
+      responses: { '200': { description: config } }
+
+  /api/v1/agent/queue-depth:
+    get:
+      tags: [A1]
+      summary: Back-pressure check
+      description: |
+        A1 calls this first. should_skip true means more than 21 approved posts
+        are already waiting, so this week's research would only add to a backlog
+        that will go stale. Skipping is correct behaviour, not a failure.
+      responses: { '200': { description: depth } }
+
+  /api/v1/agent/topic-batches:
+    post:
+      tags: [A1]
+      summary: Open a batch
+      description: Starts in state `open`, which the owner's screen hides until it is submitted.
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      responses: { '201': { description: created } }
+
+  /api/v1/agent/topics/dedupe-check:
+    post:
+      tags: [A1]
+      summary: Which of these titles were already proposed
+      description: Checked against 365 days, so a rejected idea does not return next week.
+      responses: { '200': { description: per-title verdicts } }
+
+  /api/v1/agent/topic-batches/{batchUid}/topics:
+    post:
+      tags: [A1]
+      summary: Bulk insert topics
+      description: |
+        Returns 207 with a per-item outcome. One malformed topic must not lose
+        the other 49.
+      responses: { '207': { description: per-item results } }
+
+  /api/v1/agent/topic-batches/{batchUid}/submit:
+    post:
+      tags: [A1]
+      summary: Close the batch and show it to the owner
+      description: Refused below 30 topics. A1 searches more sources rather than padding.
+      responses:
+        '200': { description: submitted }
+        '422': { description: too few topics, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /api/v1/agent/topics:
+    get:
+      tags: [A2]
+      summary: Approved topics awaiting copy
+      description: |
+        Returns only review_status=approved. There is no parameter to widen it.
+        An empty list means the owner has not approved anything yet, and A2's
+        correct response is a no-op run, never to reach for pending rows.
+      responses: { '200': { description: topics, content: { application/json: { schema: { type: object } } } } }
+
+  /api/v1/agent/topics/{topicUid}/claim:
+    post:
+      tags: [A2]
+      summary: Lease a topic for 30 minutes
+      responses:
+        '200': { description: claimed }
+        '409': { description: held by another run, or not approved }
+
+  /api/v1/agent/posts:
+    post:
+      tags: [A2]
+      summary: Create the draft post
+      description: |
+        The word cap, the hashtag range and the no-URL rule are enforced here,
+        not trusted from the agent.
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      responses:
+        '201': { description: created }
+        '422': { description: WORD_COUNT_EXCEEDED or LINK_IN_BODY }
+    get:
+      tags: [A3 / A4]
+      summary: Posts in a given lifecycle state
+      description: A3 reads images_pending; A4 reads images_ready.
+      parameters:
+        - { name: lifecycle_state, in: query, schema: { type: string } }
+      responses: { '200': { description: posts } }
+
+
+  /api/v1/agent/posts/{postUid}/images:
+    post:
+      tags: [A3 / A4]
+      summary: Upload one image option
+      description: |
+        Base64 in JSON rather than multipart, so both Node and PHP handle it
+        identically. The server re-hashes the bytes it received and rejects a
+        mismatch, catching a truncated download at the boundary instead of as a
+        grey box in the review screen a week later.
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      responses:
+        '201': { description: stored }
+        '422': { description: SHA256_MISMATCH or zero bytes }
+
+  /api/v1/agent/posts/{postUid}/submit-for-review:
+    post:
+      tags: [A3 / A4]
+      summary: Hand the package to gate 2
+      description: |
+        Re-runs the countable gates on the stored bytes. One image is allowed but
+        flagged `single_image`, so an image shortfall never blocks the owner.
+      responses: { '200': { description: awaiting the owner } }
+
+  /api/v1/agent/publish-queue/next:
+    get:
+      tags: [A5]
+      summary: What is due today
+      description: |
+        The server decides the order, so A5 has no discretion: yesterday's
+        failure first, then anything dated today or earlier, then the oldest
+        approved post with no date. A future-dated post is simply not returned.
+        204 means nothing is due, which is a normal day.
+      responses:
+        '200': { description: one post }
+        '204': { description: nothing due }
+
+  /api/v1/agent/posts/{postUid}/publish-lease:
+    post:
+      tags: [A5]
+      summary: Take the exclusive lease and get the exact payload
+      description: |
+        Every precondition is re-checked here rather than when the queue was
+        built, which is why a hold set at 07:55 wins at 08:00. The server
+        composes the commentary string and hashes it, so what goes to LinkedIn is
+        decided in one place.
+      responses:
+        '200': { description: leased }
+        '409': { description: ALREADY_POSTED, LEASE_HELD_BY_OTHER_RUN or CONTENT_CHANGED_AFTER_APPROVAL }
+        '422': { description: POST_NOT_APPROVED, NO_IMAGE_SELECTED or POST_EXPIRED }
+
+  /api/v1/agent/posts/{postUid}/publish-result:
+    post:
+      tags: [A5]
+      summary: Report what happened
+      description: |
+        outcome is success, dry_run, retryable_error or permanent_error. On
+        success the linkedin_urn is mandatory - A6 has no other way to find the
+        post, so one recorded without it is invisible to analytics forever.
+      responses: { '200': { description: recorded } }
+
+  /api/v1/agent/posts/published:
+    get:
+      tags: [A6]
+      summary: Posts inside the 6-month window
+      responses: { '200': { description: posts with their URNs } }
+
+  /api/v1/agent/metrics:bulk-upsert:
+    post:
+      tags: [A6]
+      summary: Write one dated snapshot per post
+      description: |
+        Keyed on (post, date), so re-running A6 on the same day updates rather
+        than duplicates. A metric the API did not return is stored null, never 0 -
+        a zero reads as "the post died" instead of "we could not look", and would
+        corrupt every later delta. Cumulative counters never regress.
+      responses: { '200': { description: counts and per-item results } }

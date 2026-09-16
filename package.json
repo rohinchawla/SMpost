@@ -1,0 +1,25 @@
+{
+  "name": "go-linkedin-agents",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Golden Opportunities LinkedIn posting pipeline - agents A1-A6, the approval API contract, and a mock of the Part 2 web app",
+  "type": "module",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "mock": "node mock-api/server.mjs --fresh",
+    "mock:keep": "node mock-api/server.mjs",
+    "schema": "node contract/mysql-to-sqlite.mjs",
+    "schema:check": "node contract/mysql-to-sqlite.mjs --check",
+    "validate": "node lib/validate.mjs",
+    "api": "node lib/goapi.mjs",
+    "e2e": "node tests/pipeline.e2e.mjs",
+    "test:remote": "node --test tests/contract.test.mjs",
+    "php:serve": "php -S 127.0.0.1:8080 -t webapp/public webapp/public/index.php",
+    "package": "node scripts/package-webapp.mjs",
+    "seed": "node scripts/seed-demo.mjs"
+  },
+  "$comment": "No dependencies, deliberately. SQLite ships inside Node 22+, so the mock runs with nothing installed."
+}

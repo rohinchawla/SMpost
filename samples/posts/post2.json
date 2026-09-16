@@ -1,0 +1,23 @@
+{
+  "slug": "notice",
+  "hook": "The counter-offer does not arrive in week one. It arrives in week ten.",
+  "body": "The counter-offer does not arrive in week one. It arrives in week ten.\n\nA 90-day notice period is defended as a retention control.\n\nWhat it actually buys is a three-month window.\nA window in which your accepted offer can be reopened.\n\nTheir current employer has 90 days to fix whatever made them leave.\n\nYou have a signed acceptance and no leverage.\n\nShorten the process, or plan for the window you just created.",
+  "hashtags": ["#NoticePeriod", "#TalentAcquisition", "#HiringIndia", "#HRLeadership"],
+  "keywords": ["notice period", "offer dropout", "counter offer", "time to hire"],
+  "cta_text": "Get our offer-to-join protection playbook for 90-day notice hires",
+  "cta_target": "rc@gojobs.biz",
+  "first_comment_text": "The offer-to-join protection playbook we use for 90-day notice hires: rc@gojobs.biz",
+  "numbers_used": [
+    {
+      "value": "90",
+      "source_quote": "When a company extends an offer to a candidate who has a 90-day notice period, the hiring timeline extends to 3+ months from offer acceptance to the candidate's first day.",
+      "source_url": "https://hyring.com/free-hr-toolkit/hr-glossary/notice-period-90-days-india"
+    }
+  ],
+  "image_brief": {
+    "subject": "An empty desk with a chair pushed back, seen from across a quiet office floor at dusk",
+    "mood": "a seat that was supposed to be filled",
+    "palette": "cool grey-blue, low evening light, one warm window",
+    "must_avoid": ["text", "logos", "identifiable faces", "calendars", "hourglass cliche"]
+  }
+}

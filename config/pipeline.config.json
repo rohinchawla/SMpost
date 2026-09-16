@@ -1,0 +1,136 @@
+{
+  "$comment": "Single source of truth for every agent. Edit here, not in agent files.",
+  "version": "1.0.0",
+  "company": {
+    "legalName": "Golden Opportunities Pvt Ltd",
+    "shortName": "Golden Opportunities",
+    "websites": [
+      "https://www.GOjobs.biz",
+      "https://www.GOjobs.in"
+    ],
+    "primaryWebsite": "https://www.GOjobs.biz",
+    "ctaEmail": "rc@gojobs.biz",
+    "linkedinPageUrl": "https://www.linkedin.com/company/golden-opportunities-pvt-ltd/",
+    "linkedinOrgUrn": "urn:li:organization:REPLACE_WITH_NUMERIC_ORG_ID"
+  },
+  "audience": {
+    "who": "HR Heads, CHROs and HR Managers at Indian enterprises",
+    "companySize": "500+ headcount",
+    "companyTurnover": "approximately INR 500 crore and above",
+    "notTargeting": "job candidates, job seekers, freshers"
+  },
+  "timezone": "Asia/Kolkata",
+  "schedule": {
+    "mode": "approval-gated",
+    "a1": {
+      "cron": "0 5 * * 3",
+      "description": "Wednesday 05:00 IST"
+    },
+    "a2": {
+      "trigger": "on-approval",
+      "description": "fires when topics are approved at gate 1"
+    },
+    "a3": {
+      "trigger": "on-complete:a2"
+    },
+    "a4": {
+      "trigger": "on-complete:a3"
+    },
+    "a5": {
+      "cron": "0 8 * * *",
+      "description": "daily 08:00 IST, weekends included"
+    },
+    "a6": {
+      "cron": "0 9 * * *",
+      "description": "daily 09:00 IST"
+    }
+  },
+  "api": {
+    "baseUrl": "http://127.0.0.1:8787",
+    "productionBaseUrl": "https://app.gojobs.biz",
+    "timeoutMs": 30000,
+    "retry": {
+      "attempts": 3,
+      "backoffMs": [
+        30000,
+        120000,
+        480000
+      ],
+      "jitterPct": 20
+    }
+  },
+  "limits": {
+    "topicsPerBatchMin": 30,
+    "topicsPerBatchMax": 60,
+    "approvedQueueCeiling": 21,
+    "maxBodyWords": 100,
+    "minBodyWords": 40,
+    "maxHookChars": 125,
+    "hashtagsMin": 3,
+    "hashtagsMax": 5,
+    "imagesPerPost": 2,
+    "maxEmDashesPerPost": 1,
+    "maxEmojiPerPost": 1,
+    "ctaRateMaxPct": 35,
+    "dedupeCosineThreshold": 0.86,
+    "themeCooldownDays": 45,
+    "topicDedupeLookbackDays": 365,
+    "sourceMaxAgeMonths": 18,
+    "metricsWindowDays": 183,
+    "packageTtlDays": 45
+  },
+  "makerChecker": {
+    "deterministicRepairAttempts": 2,
+    "checkerRevisionRounds": 2,
+    "maxArtefactsPerItem": 3,
+    "perItemTimeoutSec": 120,
+    "batchCircuitBreakerPct": 30
+  },
+  "images": {
+    "provider": "higgsfield-mcp",
+    "optionA": {
+      "model": "recraft_v4_1",
+      "params": {
+        "model_type": "standard",
+        "resolution": "2k"
+      },
+      "note": "First live batch: 3 of 3 usable. Clean, literal, well lit, reads at feed size."
+    },
+    "optionB": {
+      "model": "soul_cinematic",
+      "params": {
+        "quality": "2k"
+      },
+      "note": "First live batch: 0 of 3 usable - every output came back near-black and/or too abstract to read at feed size. Keep the second model for genuine variety, but the lighting directive below is now mandatory, and re-assess after the next batch. If it stays at 0, switch option B to recraft_v4_1 with model_type \"utility\" for a different look from the same reliable model."
+    },
+    "aspectRatio": "4:3",
+    "creditCapPerRun": 120,
+    "noTextInImages": true,
+    "negativePrompt": "text, letters, words, typography, watermark, signature, logo, brand mark, distorted hands, extra fingers, deformed anatomy, handshake cliche, jigsaw puzzle, lightbulb, ladder, job fair, students, stock photo",
+    "lightingDirective": "bright even lighting, high key, clearly legible as a thumbnail, mid-tone background, no near-black frames",
+    "$lightingNote": "Appended to every prompt. LinkedIn renders posts on a light feed, and a dark image reads as an empty rectangle at thumbnail size."
+  },
+  "linkedin": {
+    "dryRun": true,
+    "mode": "api",
+    "$modeOptions": "api = publish via Community Management API; assisted = prepare and notify the owner to publish manually",
+    "apiVersion": "202509",
+    "postScope": "w_organization_social",
+    "analyticsScope": "rw_organization_admin",
+    "postFirstComment": true,
+    "firstCommentDelaySec": 90,
+    "maxPublishAttempts": 5,
+    "browserAutomation": false,
+    "$browserAutomationNote": "Never enable. Scripted browsing of linkedin.com violates their user agreement and risks the company page and the owner's personal account."
+  },
+  "paths": {
+    "work": "work",
+    "spool": "work/spool",
+    "images": "work/images"
+  },
+  "alerts": {
+    "ownerEmail": "rc@gojobs.biz",
+    "alertOnZeroOutput": true,
+    "alertOnPendingTopicsOlderThanDays": 7
+  }
+}

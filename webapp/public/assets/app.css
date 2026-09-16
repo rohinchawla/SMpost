@@ -1,0 +1,2232 @@
+/*
+ * Golden Opportunities - the approval app.
+ *
+ * One stylesheet, plain CSS, no build step and no framework. It dresses an
+ * Operate surface: Rohin is in a task (read 40 topics, decide; read one post,
+ * decide), so density is a feature and the tool should disappear into the job.
+ *
+ * WHY THERE IS NO DARK MODE, AND WHY NOBODY SHOULD ADD ONE
+ * -------------------------------------------------------
+ * The brand has one light theme. The tokens below are the shipped,
+ * contrast-tested light set copied from the extension's kinpaku.css; a dark
+ * inversion of them has not been tested and would put gold, patina and
+ * vermilion at lightnesses where none of the contrast decisions hold. So this
+ * file declares color-scheme: light (which also stops the OS auto-darkening
+ * form controls) and deliberately ships NO prefers-color-scheme: dark block.
+ * If you are here to add one out of habit: do not. Re-derive the palette first.
+ *
+ * THE THREE RULES THAT SHAPE EVERYTHING BELOW
+ * -------------------------------------------
+ * 1. Paper and ink. Surfaces are neutral paper (chroma 0), type is ink. No warm
+ *    cast. The warm light-* set from DESIGN.md is not used here; it trips the
+ *    cream-palette anti-pattern.
+ * 2. Gold is jewelry, and in this app it is spent exactly once: the tag on a
+ *    number in a post that could not be traced back to its source. That is the
+ *    finding the product exists to catch, so it gets the brand's one loud mark
+ *    and nothing else does. Gold NEVER carries text on paper (at 84% lightness
+ *    it lands under 2:1). Coloured text is --ks-patina-deep. Failure only is
+ *    --ks-vermilion. Ink on gold, and gold as a highlight fill, are both legal.
+ * 3. Elevation is declared once: border OR shadow, never both. Exactly two
+ *    elements in this file carry a shadow, and neither has a border: the
+ *    dialog and the sticky action bar. Everything else is a 1px rule.
+ *
+ * No cards. Rule-separated rows and real tables. No eyebrow above any heading.
+ * 11px is the hard floor for any functional text, badges and table cells
+ * included. Sections below run: tokens, reset, browser surfaces, type, shell,
+ * primitives, verdict, gate 1, gate 2 + preview, provenance, analytics, ops,
+ * utilities, responsive, reduced motion.
+ */
+
+/* ============================================================
+   TOKENS. Copied verbatim from extension/shared/kinpaku.css.
+   Values are copied, never invented; when that file moves, move
+   this block with it.
+   ============================================================ */
+:root {
+  color-scheme: light;
+
+  /* Gold. The mark, a line, a lit dot, the tag. Never text on paper. */
+  --ks-kinpaku: oklch(84% 0.19 80.46);
+  --ks-kinpaku-vivid: oklch(87% 0.20 85);
+  --ks-kinpaku-rich: oklch(77% 0.13 82);
+  --ks-kinpaku-deep: oklch(61% 0.085 78);
+  --ks-on-gold: oklch(14% 0.018 95);
+
+  /* Patina. State, links, selection, and any text that has to be colored. */
+  --ks-patina: oklch(70% 0.12 188);
+  --ks-patina-pale: oklch(82% 0.07 188);
+  --ks-patina-deep: oklch(46% 0.08 188);
+  --ks-patina-ink: oklch(38% 0.08 188);
+
+  /* Failure only. */
+  --ks-vermilion: oklch(52% 0.16 35);
+
+  /* Paper. */
+  --ks-paper: oklch(97.8% 0 0);
+  --ks-paper-raised: oklch(99.5% 0 0);
+  --ks-paper-deep: oklch(95% 0 0);
+  --ks-gray: oklch(92% 0 0);
+  --ks-gray-2: oklch(88% 0 0);
+
+  /* Ink. */
+  --ks-ink: oklch(13% 0 0);
+  --ks-text: oklch(22% 0 0);
+  --ks-text-muted: oklch(46% 0 0);
+  --ks-text-faint: oklch(56% 0 0);
+  --ks-text-mute-deep: oklch(66% 0 0);
+
+  /* Rules. A divider is faint; the bound of a control clears 3:1. */
+  --ks-rule: oklch(13% 0 0 / 0.08);
+  --ks-edge: oklch(13% 0 0 / 0.45);
+
+  /* Shape. */
+  --ks-radius-sm: 3px;
+  --ks-radius-md: 8px;
+  --ks-radius-pill: 999px;
+
+  /* Paper hardware. A cap stands proud of a recessed track; the dot lights. */
+  --ks-cap-lift: inset 0 1px 0 oklch(100% 0 0 / 0.9), 0 1px 0 oklch(13% 0 0 / 0.14), 0 2px 3px oklch(13% 0 0 / 0.08);
+  --ks-cap-press: inset 0 1px 2px oklch(13% 0 0 / 0.14);
+  --ks-track-recess: inset 0 1px 3px oklch(13% 0 0 / 0.16), inset 0 -1px 0 oklch(100% 0 0 / 0.7);
+  --ks-led: 0 0 0 1px oklch(13% 0 0 / 0.12), 0 0 4px oklch(84% 0.19 80 / 0.6);
+  --ks-lift-1: 0 1px 1px oklch(13% 0 0 / 0.05), 0 2px 3px oklch(13% 0 0 / 0.04), 0 6px 12px oklch(13% 0 0 / 0.05);
+
+  /* Motion. */
+  --ks-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ks-quick: 120ms;
+  --ks-settle: 200ms;
+
+  /* Type. System stands-in for the two site faces; see the header. */
+  --ks-font: "Avenir Next", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --ks-font-wordmark: "Avenir Next Condensed", "Roboto Condensed", "Arial Narrow", var(--ks-font);
+  --ks-mono: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+
+  /* Dense UI ramp. 11px is the floor for anything functional. */
+  --ks-type-micro: 11px;
+  --ks-type-label: 12px;
+  --ks-type-ui: 13px;
+}
+
+/* ============================================================
+   RESET. Also verbatim from kinpaku.css. The app layer below
+   re-states body size for a full page rather than a 320px popup;
+   the reset itself is untouched so a re-sync stays a straight
+   copy.
+   ============================================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--ks-paper);
+  color: var(--ks-text);
+  font-family: var(--ks-font);
+  font-size: var(--ks-type-label);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   APP LAYER. Everything from here down is this app's own.
+   One font family (kinpaku's system stack; Inter and Roboto are
+   banned by overused-font). Fixed rem scale, ratio ~1.125,
+   ceiling 22px - an Operate surface has no hero, so nothing
+   here comes near the 28px limit.
+   ============================================================ */
+:root {
+  --go-t-11: 0.6875rem; /* the hard floor: badges, meta, table heads */
+  --go-t-12: 0.75rem;
+  --go-t-13: 0.8125rem;
+  --go-t-14: 0.875rem;
+  --go-t-16: 1rem;
+  --go-t-18: 1.125rem;
+  --go-t-20: 1.25rem;
+  --go-t-22: 1.375rem;
+
+  --go-s-4: 4px;
+  --go-s-8: 8px;
+  --go-s-12: 12px;
+  --go-s-16: 16px;
+  --go-s-24: 24px;
+  --go-s-32: 32px;
+
+  /* Rows and controls: 36-40px on desktop, 44px on phone. */
+  --go-control-h: 36px;
+  --go-row-action-h: 36px;
+  --go-touch-h: 44px;
+
+  --go-topbar-h: 52px;
+  --go-page-max: 1180px;
+  --go-li-w: 555px; /* LinkedIn's own feed card width on desktop */
+
+  /* Motion: 150ms, ease-out, no bounce, nothing pulses. */
+  --go-motion: 150ms;
+  --go-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --go-t: 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-size: var(--go-t-13);
+  min-height: 100vh;
+}
+
+/* ============================================================
+   BROWSER SURFACES. The parts nobody draws still carry the
+   design: selection, caret, focus ring, placeholder, scrollbars,
+   underline offset, and the numerals in data.
+   ============================================================ */
+::selection {
+  background: oklch(70% 0.12 188 / 0.26);
+  color: var(--ks-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ks-patina);
+  outline-offset: 2px;
+}
+
+input,
+textarea,
+select,
+[contenteditable] {
+  caret-color: var(--ks-patina-deep);
+}
+
+/* --ks-text-faint (56%) clears 4.5:1 on paper. --ks-text-mute-deep (66%)
+   does not, so it never carries placeholder or any other read text. */
+::placeholder {
+  color: var(--ks-text-faint);
+  opacity: 1;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ks-gray-2) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ks-gray-2);
+  border: 3px solid var(--ks-paper);
+  border-radius: var(--ks-radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ks-text-mute-deep);
+}
+
+a {
+  color: var(--ks-patina-deep);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition: color var(--go-t);
+}
+
+a:hover {
+  color: var(--ks-patina-ink);
+}
+
+/* Every numeric and date surface is tabular, so columns of figures line up
+   and a changing count never shifts its neighbours. */
+time,
+.go-num,
+.u-num,
+.go-topic-pos,
+.go-topic-meta,
+.go-wordcount,
+.go-hookcount,
+.go-progress-note,
+.go-batch-progress,
+.go-trace-value,
+.go-delta,
+.go-table td,
+.go-table th,
+.go-perf td,
+.go-runs td,
+.go-dl dd,
+.go-log-line time {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Icons are drawn, one stroke weight, from assets/icons.svg. No emoji
+   anywhere in this product, and no unicode glyph standing in for a mark. */
+.go-icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--ks-rule);
+}
+
+/* ============================================================
+   TYPE. One family, fixed steps, no fluid clamps.
+   There is no eyebrow or kicker class in this file and there
+   must never be one: the heading carries its own weight.
+   ============================================================ */
+h1,
+h2,
+h3,
+h4 {
+  color: var(--ks-ink);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+h1 { font-size: var(--go-t-22); }
+h2 { font-size: var(--go-t-18); }
+h3 { font-size: var(--go-t-16); }
+h4 { font-size: var(--go-t-14); }
+
+p {
+  max-width: 70ch;
+}
+
+/* ============================================================
+   KINPAKU'S OWN MARKS, kept as shipped.
+   ============================================================ */
+.ks-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  color: var(--ks-ink);
+}
+
+.ks-mark svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.ks-wordmark {
+  font-family: var(--ks-font-wordmark);
+  font-size: var(--ks-type-ui);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--ks-ink);
+}
+
+/* The tag: ink on gold, mono, small. Legal because the text is ink and the
+   gold is the fill; gold text on paper is the bug, not this.
+   RESERVED. In this app the gold tag has exactly one job - marking a number
+   that could not be traced to its source (see .go-trace-verdict.is-untraced,
+   which is the same tag by another name). Use .ks-tag.is-quiet for anything
+   else that needs a tag shape, or the gold stops meaning anything.
+   REDECLARED AT 11px ON PURPOSE. kinpaku ships .ks-tag at 9px, which is fine
+   for a page overlay but sits under this app's 11px floor for functional
+   text, and here the tag names a decision Rohin has to read and act on. If a
+   future re-sync pulls kinpaku's block back in, keep this override or the
+   floor silently reverts to 9px. */
+.ks-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 18px;
+  padding: 0 6px;
+  border-radius: var(--ks-radius-sm);
+  background: var(--ks-kinpaku);
+  color: var(--ks-on-gold);
+  font-family: var(--ks-mono);
+  font-size: var(--go-t-11);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.ks-tag.is-quiet {
+  background: var(--ks-gray);
+  color: var(--ks-text-muted);
+}
+
+/* ============================================================
+   SHELL. Topbar (the second neutral layer), runway, page.
+   The topbar is sticky and declares its elevation as a 1px
+   rule, not a shadow.
+   ============================================================ */
+.go-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--ks-paper);
+}
+
+.go-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: var(--go-s-16);
+  min-height: var(--go-topbar-h);
+  padding: 0 var(--go-s-16);
+  background: var(--ks-paper-deep);
+  border-bottom: 1px solid var(--ks-rule);
+}
+
+.go-topbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--go-s-8);
+  flex: none;
+  text-decoration: none;
+  color: var(--ks-ink);
+}
+
+.go-topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--go-s-4);
+  margin-inline-start: auto;
+}
+
+.go-topbar-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--go-control-h);
+  padding: 0 10px;
+  border-radius: var(--ks-radius-sm);
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-13);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--go-t), background-color var(--go-t);
+}
+
+.go-topbar-link:hover {
+  background: var(--ks-gray);
+  color: var(--ks-text);
+}
+
+.go-topbar-link.is-current {
+  background: var(--ks-gray);
+  color: var(--ks-ink);
+  font-weight: 600;
+}
+
+.go-topbar-link[aria-disabled="true"] {
+  color: var(--ks-text-faint);
+  pointer-events: none;
+}
+
+/* The runway: what is queued to publish, newest first, as a single strip of
+   rule-separated slots. Not cards - one row, hairlines between. */
+.go-runway {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow-x: auto;
+  padding: 0 var(--go-s-16);
+  background: var(--ks-paper-raised);
+  border-bottom: 1px solid var(--ks-rule);
+  font-size: var(--go-t-12);
+}
+
+.go-runway > * {
+  display: flex;
+  align-items: center;
+  gap: var(--go-s-8);
+  flex: none;
+  min-height: 40px;
+  padding: 0 var(--go-s-12);
+  border-inline-end: 1px solid var(--ks-rule);
+  color: var(--ks-text-muted);
+  white-space: nowrap;
+}
+
+.go-runway > :last-child {
+  border-inline-end: 0;
+}
+
+.go-runway.is-empty {
+  color: var(--ks-text-muted);
+}
+
+.go-runway.is-empty::before {
+  content: "Nothing queued. Approve a package at gate 2 and it lands here.";
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 var(--go-s-12);
+  color: var(--ks-text-muted);
+}
+
+.go-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.go-page {
+  max-width: var(--go-page-max);
+  margin: 0 auto;
+  padding: var(--go-s-24) var(--go-s-16) var(--go-s-32);
+}
+
+/* More space above a heading than below it. */
+.go-page-head {
+  padding-bottom: var(--go-s-16);
+  border-bottom: 1px solid var(--ks-rule);
+}
+
+.go-page-title {
+  font-size: var(--go-t-22);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  line-height: 1.2;
+  color: var(--ks-ink);
+}
+
+.go-page-sub {
+  margin-top: 6px;
+  max-width: 72ch;
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-13);
+}
+
+.go-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--go-s-12);
+  padding: var(--go-s-12) 0;
+  border-bottom: 1px solid var(--ks-rule);
+}
+
+.go-toolbar > .u-right {
+  margin-inline-start: auto;
+}
+
+.go-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.go-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--ks-gray-2);
+  border-radius: var(--ks-radius-pill);
+  background: var(--ks-paper-raised);
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-12);
+  cursor: pointer;
+  transition: background-color var(--go-t), color var(--go-t), border-color var(--go-t);
+}
+
+.go-filter:hover {
+  border-color: var(--ks-text-mute-deep);
+  color: var(--ks-text);
+}
+
+/* Selected is ink-filled everywhere in this app, never gold. */
+.go-filter.is-on {
+  background: var(--ks-ink);
+  border-color: var(--ks-ink);
+  color: var(--ks-paper);
+  font-weight: 600;
+}
+
+.go-filter .go-num {
+  color: inherit;
+  opacity: 0.7;
+}
+
+/* A flash names the problem and the recovery, so it gets room for a sentence
+   and a link, not a single word. */
+.go-flash {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--go-s-8);
+  margin: var(--go-s-16) 0;
+  padding: 10px var(--go-s-12);
+  border: 1px solid var(--ks-gray-2);
+  border-radius: var(--ks-radius-sm);
+  background: var(--ks-paper-raised);
+  color: var(--ks-text);
+  font-size: var(--go-t-13);
+}
+
+.go-flash .go-icon {
+  margin-top: 2px;
+  color: var(--ks-text-muted);
+}
+
+.go-flash.is-error {
+  border-color: var(--ks-vermilion);
+  color: var(--ks-text);
+}
+
+.go-flash.is-error .go-icon {
+  color: var(--ks-vermilion);
+}
+
+.go-flash.is-error strong {
+  color: var(--ks-vermilion);
+}
+
+/* ============================================================
+   PRIMITIVES. Every interactive element carries default, hover,
+   focus, active, disabled and busy. One button shape across the
+   whole app.
+   ============================================================ */
+.go-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--go-control-h);
+  padding: 0 var(--go-s-12);
+  border: 1px solid transparent;
+  border-radius: var(--ks-radius-sm);
+  background: transparent;
+  color: var(--ks-text);
+  font-size: var(--go-t-13);
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--go-t), border-color var(--go-t), color var(--go-t);
+}
+
+.go-btn:disabled,
+.go-btn[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.go-btn[aria-busy="true"] {
+  cursor: progress;
+  color: var(--ks-text-muted);
+}
+
+.go-btn-primary {
+  background: var(--ks-ink);
+  border-color: var(--ks-ink);
+  color: var(--ks-paper);
+  font-weight: 600;
+}
+
+.go-btn-primary:hover:not(:disabled) {
+  background: oklch(20% 0 0);
+  border-color: oklch(20% 0 0);
+}
+
+.go-btn-primary:active:not(:disabled) {
+  background: oklch(28% 0 0);
+  border-color: oklch(28% 0 0);
+}
+
+.go-btn-secondary {
+  background: var(--ks-paper-raised);
+  border-color: var(--ks-edge);
+  color: var(--ks-text);
+}
+
+.go-btn-secondary:hover:not(:disabled) {
+  background: var(--ks-gray);
+}
+
+.go-btn-secondary:active:not(:disabled) {
+  background: var(--ks-gray-2);
+}
+
+.go-btn-quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ks-text-muted);
+}
+
+.go-btn-quiet:hover:not(:disabled) {
+  background: var(--ks-gray);
+  color: var(--ks-text);
+}
+
+.go-btn-quiet:active:not(:disabled) {
+  background: var(--ks-gray-2);
+}
+
+.go-btn-sm {
+  min-height: 28px;
+  padding: 0 var(--go-s-8);
+  font-size: var(--go-t-12);
+}
+
+.go-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.go-label {
+  color: var(--ks-text);
+  font-size: var(--go-t-12);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.go-input,
+.go-textarea,
+.go-select {
+  width: 100%;
+  min-height: var(--go-control-h);
+  padding: 7px 10px;
+  border: 1px solid var(--ks-gray-2);
+  border-radius: var(--ks-radius-sm);
+  background: var(--ks-paper-raised);
+  color: var(--ks-text);
+  font-size: var(--go-t-13);
+  font-family: inherit;
+  line-height: 1.45;
+  transition: border-color var(--go-t), background-color var(--go-t);
+}
+
+.go-input:hover,
+.go-textarea:hover,
+.go-select:hover {
+  border-color: var(--ks-text-mute-deep);
+}
+
+.go-input:disabled,
+.go-textarea:disabled,
+.go-select:disabled {
+  background: var(--ks-paper-deep);
+  color: var(--ks-text-muted);
+  cursor: not-allowed;
+}
+
+.go-input[aria-invalid="true"],
+.go-textarea[aria-invalid="true"],
+.go-select[aria-invalid="true"] {
+  border-color: var(--ks-vermilion);
+}
+
+.go-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* The select chevron is drawn, at the same 1.5 stroke as the sprite. It is
+   inlined rather than pulled from icons.svg because a background-image cannot
+   reference a sprite symbol. */
+.go-select {
+  appearance: none;
+  padding-inline-end: 30px;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23232323' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9.5 12 15.5 18 9.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px 16px;
+}
+
+.go-hint {
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-12);
+}
+
+.go-error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ks-vermilion);
+  font-size: var(--go-t-12);
+}
+
+.go-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  padding: 0 4px 0 9px;
+  border-radius: var(--ks-radius-pill);
+  background: var(--ks-gray);
+  color: var(--ks-text);
+  font-size: var(--go-t-12);
+  white-space: nowrap;
+}
+
+.go-chip:not(:has(.go-chip-remove)) {
+  padding-inline-end: 9px;
+}
+
+.go-chip-remove {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: var(--ks-radius-pill);
+  background: transparent;
+  color: var(--ks-text-muted);
+  cursor: pointer;
+  transition: background-color var(--go-t), color var(--go-t);
+}
+
+.go-chip-remove:hover {
+  background: var(--ks-gray-2);
+  color: var(--ks-ink);
+}
+
+.go-chip-remove .go-icon {
+  width: 12px;
+  height: 12px;
+}
+
+/* State dots. Colour never carries the meaning alone - a dot always sits
+   next to its word in .go-status. */
+.go-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: var(--ks-radius-pill);
+  background: var(--ks-text-mute-deep);
+}
+
+.go-dot.is-pending {
+  background: var(--ks-text-mute-deep);
+}
+
+.go-dot.is-approved {
+  background: var(--ks-patina);
+}
+
+/* Hold reads as an open ring, drawn with a border rather than an inset
+   shadow so that the only box-shadow declarations in this file remain the
+   two real elevations. */
+.go-dot.is-hold {
+  background: transparent;
+  border: 2px solid var(--ks-text-faint);
+}
+
+.go-dot.is-rejected {
+  background: var(--ks-vermilion);
+}
+
+.go-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-12);
+  white-space: nowrap;
+}
+
+.go-progress-note {
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-12);
+}
+
+.go-num {
+  font-weight: 600;
+  color: var(--ks-text);
+}
+
+/* An empty state teaches the interface; it never just says "nothing here". */
+.go-empty {
+  padding: var(--go-s-32) var(--go-s-16);
+  border-top: 1px solid var(--ks-rule);
+  text-align: start;
+}
+
+.go-empty-title {
+  font-size: var(--go-t-16);
+  font-weight: 600;
+  color: var(--ks-ink);
+}
+
+.go-empty-body {
+  margin-top: 6px;
+  max-width: 62ch;
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-13);
+}
+
+.go-empty-body + .go-btn,
+.go-empty-body + .go-empty-body {
+  margin-top: var(--go-s-12);
+}
+
+/* Real tables, rule-separated. Density is permitted here. */
+.go-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--go-t-13);
+}
+
+.go-table caption {
+  padding-bottom: var(--go-s-8);
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-12);
+  text-align: start;
+}
+
+.go-table th {
+  position: sticky;
+  top: var(--go-topbar-h);
+  z-index: 1;
+  padding: var(--go-s-8) var(--go-s-12);
+  background: var(--ks-paper);
+  border-bottom: 1px solid var(--ks-gray-2);
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-11);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-align: start;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.go-table td {
+  padding: 9px var(--go-s-12);
+  border-bottom: 1px solid var(--ks-rule);
+  vertical-align: top;
+}
+
+.go-table tbody tr:hover td {
+  background: var(--ks-paper-raised);
+}
+
+.go-table td.u-num,
+.go-table th.u-num {
+  text-align: end;
+}
+
+.go-table .go-btn {
+  min-height: var(--go-row-action-h);
+}
+
+/* One of exactly two shadowed elements. It carries no border: elevation is
+   declared once. */
+.go-dialog {
+  width: min(560px, calc(100vw - 32px));
+  padding: 0;
+  border: 0;
+  border-radius: var(--ks-radius-md);
+  background: var(--ks-paper-raised);
+  box-shadow: var(--ks-lift-1);
+  color: var(--ks-text);
+}
+
+.go-dialog::backdrop {
+  background: oklch(13% 0 0 / 0.32);
+}
+
+.go-dialog > header {
+  padding: var(--go-s-16) var(--go-s-16) var(--go-s-12);
+  border-bottom: 1px solid var(--ks-rule);
+  font-size: var(--go-t-16);
+  font-weight: 600;
+  color: var(--ks-ink);
+}
+
+.go-dialog > .go-dialog-body,
+.go-dialog > form > .go-dialog-body {
+  padding: var(--go-s-16);
+}
+
+.go-dialog > footer,
+.go-dialog > form > footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--go-s-8);
+  padding: var(--go-s-12) var(--go-s-16);
+  border-top: 1px solid var(--ks-rule);
+}
+
+/* ============================================================
+   VERDICT. A 4-way segmented control that IS the status display,
+   so a badge and a control can never disagree about what state
+   a topic or a package is in. The selected segment is ink-filled
+   - gold is already spent on the untraced-number tag.
+   ============================================================ */
+.go-verdict {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  overflow: hidden;
+  border: 1px solid var(--ks-edge);
+  border-radius: var(--ks-radius-sm);
+  background: var(--ks-paper-raised);
+}
+
+.go-verdict-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--go-control-h);
+  padding: 0 10px;
+  border: 0;
+  border-inline-start: 1px solid var(--ks-gray-2);
+  background: transparent;
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-12);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--go-t), color var(--go-t);
+}
+
+.go-verdict-btn:first-child {
+  border-inline-start: 0;
+}
+
+.go-verdict-btn:hover:not(:disabled) {
+  background: var(--ks-gray);
+  color: var(--ks-text);
+}
+
+.go-verdict-btn:disabled {
+  color: var(--ks-text-faint);
+  cursor: not-allowed;
+}
+
+.go-verdict-btn.is-on {
+  background: var(--ks-ink);
+  color: var(--ks-paper);
+  font-weight: 600;
+}
+
+.go-verdict-btn:focus-visible {
+  outline-offset: -3px;
+}
+
+/* The keyboard shortcut for the segment. Mono is legitimate here: it is a
+   key, not a costume. */
+.go-verdict-key {
+  font-family: var(--ks-mono);
+  font-size: var(--go-t-11);
+  color: var(--ks-text-faint);
+}
+
+.go-verdict-btn.is-on .go-verdict-key {
+  color: var(--ks-paper);
+  opacity: 0.75;
+}
+
+/* ============================================================
+   GATE 1. Thirty to sixty topics, one screen, one decision each.
+   Rows separated by hairlines - no cards, no grid of identical
+   tiles. The rail on the left holds the position and the
+   relevance meter so the eye can run down one column.
+   ============================================================ */
+.go-topics {
+  border-top: 1px solid var(--ks-rule);
+}
+
+.go-topic {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: var(--go-s-16);
+  align-items: start;
+  padding: var(--go-s-16) var(--go-s-8);
+  border-bottom: 1px solid var(--ks-rule);
+  transition: background-color var(--go-t);
+}
+
+.go-topic:hover,
+.go-topic:focus-within {
+  background: var(--ks-paper-raised);
+}
+
+.go-topic.is-rejected .go-topic-title,
+.go-topic.is-rejected .go-topic-line,
+.go-topic.is-rejected .go-quote {
+  color: var(--ks-text-muted);
+  text-decoration-color: var(--ks-text-faint);
+}
+
+.go-topic.is-rejected .go-topic-title {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+/* Locked: gate 1 has closed on this topic and A2 is already writing from it.
+   Muted by colour, not by opacity, so every word still clears 4.5:1. */
+.go-topic.is-locked {
+  background: var(--ks-paper-deep);
+}
+
+.go-topic.is-locked .go-topic-line,
+.go-topic.is-locked .go-topic-meta {
+  color: var(--ks-text-muted);
+}
+
+.go-topic.is-locked .go-verdict-btn:not(.is-on) {
+  color: var(--ks-text-faint);
+}
+
+.go-topic-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--go-s-8);
+  padding-top: 2px;
+}
+
+.go-topic-pos {
+  color: var(--ks-text-faint);
+  font-size: var(--go-t-12);
+}
+
+/* Three 4px bars. The score fills from the top: .is-0 fills one, .is-1 two,
+   .is-2 all three. Unfilled bars are --ks-gray-2, filled are --ks-patina.
+   The numeric score always travels with it in the markup, so the meter is
+   never the only carrier of the value. */
+.go-relevance {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 18px;
+}
+
+.go-relevance span {
+  display: block;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--ks-gray-2);
+}
+
+.go-relevance.is-0 span:nth-child(1),
+.go-relevance.is-1 span:nth-child(-n + 2),
+.go-relevance.is-2 span {
+  background: var(--ks-patina);
+}
+
+.go-topic-title {
+  color: var(--ks-ink);
+  font-size: var(--go-t-16);
+  font-weight: 600;
+  letter-spacing: -0.008em;
+  line-height: 1.3;
+}
+
+.go-topic-line {
+  margin-top: 3px;
+  max-width: 74ch;
+  color: var(--ks-text);
+  font-size: var(--go-t-13);
+}
+
+/* Exactly 1px, and neutral. A coloured border-left above 1px is the side-tab
+   anti-pattern; this is a quotation rule, not a stripe. */
+.go-quote {
+  margin-top: var(--go-s-8);
+  padding-inline-start: var(--go-s-12);
+  border-left: 1px solid var(--ks-gray-2);
+  max-width: 74ch;
+  color: var(--ks-text);
+  font-size: var(--go-t-13);
+  line-height: 1.55;
+}
+
+.go-quote cite {
+  display: block;
+  margin-top: 3px;
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-12);
+  font-style: normal;
+}
+
+.go-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  color: var(--ks-patina-deep);
+  font-size: var(--go-t-12);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  word-break: break-word;
+}
+
+.go-source .go-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.go-topic-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--go-s-12);
+  margin-top: var(--go-s-8);
+  color: var(--ks-text-faint);
+  font-size: var(--go-t-11);
+}
+
+.go-topic-meta > * {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Rohin's edit sits beside the immutable original. The original is read-only
+   at the database level; the styling says so before the tooltip does. */
+.go-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: var(--go-s-12);
+}
+
+.go-edit .go-textarea {
+  min-height: 72px;
+}
+
+.go-original {
+  margin-top: var(--go-s-8);
+  padding: var(--go-s-8) var(--go-s-12);
+  border-radius: var(--ks-radius-sm);
+  background: var(--ks-paper-deep);
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-12);
+  line-height: 1.5;
+}
+
+.go-original::before {
+  content: "Original, unchanged";
+  display: block;
+  margin-bottom: 3px;
+  color: var(--ks-text-faint);
+  font-size: var(--go-t-11);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* One topic, full screen: the slow path, for a topic that needs reading
+   rather than triaging. */
+.go-one {
+  display: grid;
+  gap: var(--go-s-16);
+  max-width: 78ch;
+  padding: var(--go-s-16) 0 96px;
+}
+
+.go-one .go-topic-title {
+  font-size: var(--go-t-20);
+}
+
+/* The second and last shadowed element. Sticky, no border: elevation once. */
+.go-one-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--go-s-12);
+  margin-top: var(--go-s-16);
+  padding: var(--go-s-12) var(--go-s-16);
+  border-radius: var(--ks-radius-md);
+  background: var(--ks-paper-raised);
+  box-shadow: var(--ks-lift-1);
+}
+
+.go-one-actions .u-right {
+  margin-inline-start: auto;
+}
+
+/* A count and a 2px track. No spinner, no pulsing dot. */
+.go-batch-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--go-s-8);
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-12);
+}
+
+.go-batch-progress::after {
+  content: "";
+  flex: 1;
+  min-width: 80px;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(to right, var(--ks-ink) 0 var(--go-progress, 0%), var(--ks-gray-2) var(--go-progress, 0%) 100%);
+}
+
+/* ============================================================
+   GATE 2. The package on the left as the feed will actually
+   render it, the editor on the right. Two columns, separated by
+   a rule, collapsing to one under 960px.
+   ============================================================ */
+.go-review {
+  display: grid;
+  grid-template-columns: minmax(0, var(--go-li-w)) minmax(0, 1fr);
+  gap: var(--go-s-32);
+  align-items: start;
+  padding-top: var(--go-s-16);
+}
+
+.go-review-preview {
+  position: sticky;
+  top: calc(var(--go-topbar-h) + var(--go-s-16));
+  min-width: 0;
+}
+
+.go-review-editor {
+  min-width: 0;
+  padding-inline-start: var(--go-s-32);
+  border-inline-start: 1px solid var(--ks-rule);
+}
+
+.go-editor-block {
+  padding: var(--go-s-16) 0;
+  border-bottom: 1px solid var(--ks-rule);
+}
+
+.go-editor-block:first-child {
+  padding-top: 0;
+}
+
+.go-editor-block > h3 {
+  margin-bottom: var(--go-s-8);
+}
+
+/* 100 body words is a hard gate, so the count is a control surface, not
+   decoration: patina-deep as it approaches, vermilion once it is over. */
+.go-wordcount,
+.go-hookcount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-12);
+}
+
+.go-wordcount.is-near {
+  color: var(--ks-patina-deep);
+}
+
+.go-wordcount.is-over {
+  color: var(--ks-vermilion);
+  font-weight: 600;
+}
+
+.go-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.go-imagepick {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--go-s-12);
+}
+
+.go-imagepick-option {
+  display: block;
+  padding: 0;
+  border: 1px solid var(--ks-gray-2);
+  border-radius: var(--ks-radius-sm);
+  background: var(--ks-paper-raised);
+  overflow: hidden;
+  cursor: pointer;
+  text-align: start;
+  transition: border-color var(--go-t);
+}
+
+.go-imagepick-option:hover {
+  border-color: var(--ks-text-mute-deep);
+}
+
+.go-imagepick-option img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1.91 / 1;
+  object-fit: cover;
+  background: var(--ks-gray);
+}
+
+.go-imagepick-option figcaption,
+.go-imagepick-option .go-hint {
+  padding: 6px var(--go-s-8);
+  border-top: 1px solid var(--ks-rule);
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-11);
+}
+
+/* Selection is an inset outline rather than a second border plus a shadow,
+   so the option keeps one elevation declaration and does not jump 1px. */
+.go-imagepick-option.is-selected {
+  border-color: var(--ks-ink);
+  outline: 2px solid var(--ks-ink);
+  outline-offset: -2px;
+}
+
+.go-imagepick-option.is-selected figcaption {
+  color: var(--ks-ink);
+  font-weight: 600;
+}
+
+.go-decision {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--go-s-12);
+  padding: var(--go-s-16) 0;
+  border-top: 1px solid var(--ks-gray-2);
+}
+
+.go-decision .u-right {
+  margin-inline-start: auto;
+}
+
+/* ============================================================
+   LINKEDIN PREVIEW. 555px on desktop, which is the real feed
+   width; 16px inner padding, 1px border, 8px radius, and no
+   shadow - the border is the elevation declaration.
+   ============================================================ */
+.go-li {
+  width: 100%;
+  max-width: var(--go-li-w);
+}
+
+.go-li-card {
+  padding: var(--go-s-16);
+  border: 1px solid var(--ks-gray-2);
+  border-radius: var(--ks-radius-md);
+  background: var(--ks-paper-raised);
+}
+
+.go-li-author {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: var(--go-s-8);
+  align-items: center;
+}
+
+.go-li-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--ks-radius-pill);
+  background: var(--ks-gray);
+  object-fit: cover;
+}
+
+.go-li-name {
+  color: var(--ks-ink);
+  font-size: var(--go-t-14);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.go-li-sub {
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-12);
+  line-height: 1.35;
+}
+
+.go-li-body {
+  position: relative;
+  margin-top: var(--go-s-12);
+  color: var(--ks-text);
+  font-size: var(--go-t-14);
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.go-li-seemore {
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-14);
+}
+
+/* The fold. A 1px dashed rule drawn where the feed truncates at 140
+   characters. It is a block box on purpose: it breaks the line, so the rule
+   sits in clear space between the visible head and the hidden tail instead of
+   being struck through a line of running text. The preview has to be honest
+   about what a reader sees before they tap "see more", and a rule you cannot
+   read is decoration, not honesty. */
+.go-li-fold {
+  display: block;
+  position: relative;
+  height: 0;
+  margin: 12px -6px 16px;
+  border-top: 1px dashed var(--ks-gray-2);
+  pointer-events: none;
+}
+
+.go-li-fold-label {
+  position: absolute;
+  inset-inline-end: 0;
+  top: -7px;
+  padding: 0 4px;
+  background: var(--ks-paper-raised);
+  color: var(--ks-text-faint);
+  font-size: var(--go-t-11);
+  letter-spacing: 0.04em;
+  line-height: 14px;
+  white-space: nowrap;
+}
+
+.go-li-tags {
+  margin-top: var(--go-s-8);
+  color: var(--ks-patina-deep);
+  font-size: var(--go-t-14);
+  overflow-wrap: break-word;
+}
+
+/* Media runs to the card edge, as it does in the feed. */
+.go-li-media {
+  margin: var(--go-s-12) calc(var(--go-s-16) * -1) 0;
+  border-top: 1px solid var(--ks-rule);
+  background: var(--ks-gray);
+}
+
+.go-li-media img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.go-li-actions {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--go-s-4);
+  margin-top: var(--go-s-12);
+  padding-top: var(--go-s-8);
+  border-top: 1px solid var(--ks-rule);
+}
+
+.go-li-actions > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--go-row-action-h);
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-12);
+}
+
+/* The link always ships as the first comment, so the preview shows it there
+   and not in the body. */
+.go-li-comment {
+  margin-top: var(--go-s-8);
+  padding-top: var(--go-s-8);
+  border-top: 1px solid var(--ks-rule);
+  color: var(--ks-text);
+  font-size: var(--go-t-13);
+  line-height: 1.45;
+  overflow-wrap: break-word;
+}
+
+.go-li-comment::before {
+  content: "First comment";
+  display: block;
+  margin-bottom: 3px;
+  color: var(--ks-text-faint);
+  font-size: var(--go-t-11);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   PROVENANCE. Every numeral in a post, the sentence it came
+   from, and whether it traced. This is the one place gold is
+   spent: the untraced tag, and the highlight fill behind the
+   numeral inside the quote.
+   ============================================================ */
+.go-trace {
+  border-top: 1px solid var(--ks-gray-2);
+}
+
+.go-trace-row {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  gap: var(--go-s-12);
+  align-items: baseline;
+  padding: var(--go-s-12) 0;
+  border-bottom: 1px solid var(--ks-rule);
+}
+
+.go-trace-value {
+  color: var(--ks-ink);
+  font-size: var(--go-t-13);
+  font-weight: 600;
+}
+
+.go-trace-quote {
+  color: var(--ks-text);
+  font-size: var(--go-t-13);
+  line-height: 1.55;
+}
+
+.go-trace-quote cite {
+  display: block;
+  margin-top: 3px;
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-11);
+  font-style: normal;
+}
+
+/* Gold as a highlight fill is legal; gold as text is not. The mark keeps
+   `color: inherit` so the numeral stays ink. */
+.go-trace-mark {
+  background: oklch(84% 0.19 80.46 / 0.22);
+  color: inherit;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.go-trace-verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--go-t-11);
+  white-space: nowrap;
+}
+
+.go-trace-verdict.is-traced {
+  color: var(--ks-patina-deep);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* THE ONE FUNCTIONAL USE OF GOLD IN THIS APP.
+   A number that could not be traced back to its source is what the whole
+   pipeline exists to catch, so it gets the brand's single loud mark: ink on
+   kinpaku, mono, 11px. Nothing else in this file may claim it. */
+.go-trace-verdict.is-untraced {
+  min-height: 18px;
+  padding: 0 6px;
+  border-radius: var(--ks-radius-sm);
+  background: var(--ks-kinpaku);
+  color: var(--ks-on-gold);
+  font-family: var(--ks-mono);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 18px;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   ANALYTICS. Impressions and shares over six months, plus the
+   days nobody posted. Two charts are authored, not one scaled:
+   the wide one for desktop, a narrow one that shows only under
+   720px. Colour is never the only carrier - the shares series
+   is dashed as well as patina.
+   ============================================================ */
+.go-chart {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-11);
+}
+
+.go-chart text {
+  fill: var(--ks-text-muted);
+  stroke: none;
+  font-family: var(--ks-font);
+  font-size: var(--go-t-11);
+  font-variant-numeric: tabular-nums;
+}
+
+.go-chart .go-axis,
+.go-chart .go-grid {
+  stroke: var(--ks-gray-2);
+  stroke-width: 1;
+}
+
+.go-chart--wide {
+  display: block;
+}
+
+.go-chart--narrow {
+  display: none;
+}
+
+/* A band over the days with no post. Grey, not red: a gap is a fact, not a
+   failure, and vermilion is reserved for failure. */
+.go-chart-gap {
+  fill: var(--ks-gray);
+  opacity: 0.55;
+  stroke: none;
+}
+
+.go-chart-line {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.go-chart-line.is-impressions {
+  stroke: var(--ks-ink);
+}
+
+.go-chart-line.is-shares {
+  stroke: var(--ks-patina-deep);
+  stroke-dasharray: 4 3;
+}
+
+.go-chart-point {
+  r: 2.5;
+  fill: var(--ks-paper);
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.go-gaplist {
+  margin-top: var(--go-s-12);
+  list-style: none;
+  font-size: var(--go-t-12);
+  color: var(--ks-text-muted);
+}
+
+.go-gaplist li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--go-s-8);
+  padding: 5px 0;
+  border-bottom: 1px solid var(--ks-rule);
+}
+
+.go-gaplist li:last-child {
+  border-bottom: 0;
+}
+
+.go-perf {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--go-t-13);
+}
+
+.go-perf th {
+  padding: var(--go-s-8) var(--go-s-12);
+  border-bottom: 1px solid var(--ks-gray-2);
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-11);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-align: start;
+  text-transform: uppercase;
+}
+
+.go-perf td {
+  padding: 9px var(--go-s-12);
+  border-bottom: 1px solid var(--ks-rule);
+}
+
+.go-perf td:not(:first-child),
+.go-perf th:not(:first-child) {
+  text-align: end;
+}
+
+/* The sign travels in the text ("+18%" / "-4%"), so the direction survives
+   for anyone who cannot separate the two colours. */
+.go-delta {
+  font-size: var(--go-t-12);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.go-delta.is-up {
+  color: var(--ks-patina-deep);
+}
+
+.go-delta.is-down {
+  color: var(--ks-vermilion);
+}
+
+/* ============================================================
+   OPS. What ran, what did not, and what a failed run said.
+   A run that produced nothing writes a row saying so, so these
+   rows exist to be read - they are never empty by design.
+   ============================================================ */
+.go-alerts {
+  border-top: 1px solid var(--ks-gray-2);
+}
+
+.go-alert {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: var(--go-s-12);
+  align-items: baseline;
+  padding: var(--go-s-12) 0;
+  border-bottom: 1px solid var(--ks-rule);
+}
+
+.go-alert .go-icon {
+  align-self: center;
+  color: var(--ks-text-muted);
+}
+
+.go-alert.is-critical .go-icon {
+  color: var(--ks-vermilion);
+}
+
+.go-alert-text {
+  color: var(--ks-text);
+  font-size: var(--go-t-13);
+  line-height: 1.5;
+}
+
+.go-alert.is-critical .go-alert-text strong {
+  color: var(--ks-vermilion);
+}
+
+.go-alert-text small {
+  display: block;
+  margin-top: 2px;
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-11);
+}
+
+.go-alert-action {
+  align-self: center;
+  white-space: nowrap;
+}
+
+.go-runs {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--go-t-13);
+}
+
+.go-runs th {
+  padding: var(--go-s-8) var(--go-s-12);
+  border-bottom: 1px solid var(--ks-gray-2);
+  color: var(--ks-text-muted);
+  font-size: var(--go-t-11);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-align: start;
+  text-transform: uppercase;
+}
+
+.go-runs td {
+  padding: 9px var(--go-s-12);
+  border-bottom: 1px solid var(--ks-rule);
+  vertical-align: top;
+}
+
+/* Mono here is legitimate: this is machine output, not a costume. */
+.go-log {
+  max-height: 420px;
+  padding: var(--go-s-12);
+  overflow: auto;
+  border: 1px solid var(--ks-gray-2);
+  border-radius: var(--ks-radius-sm);
+  background: var(--ks-paper-deep);
+  font-family: var(--ks-mono);
+  font-size: var(--go-t-12);
+  line-height: 1.55;
+}
+
+.go-log-line {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: var(--go-s-8);
+  padding: 1px 0;
+  color: var(--ks-text);
+  overflow-wrap: anywhere;
+}
+
+.go-log-line time {
+  color: var(--ks-text-faint);
+}
+
+.go-log-line.is-warn {
+  color: var(--ks-patina-ink);
+}
+
+.go-log-line.is-error {
+  color: var(--ks-vermilion);
+}
+
+.go-dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 5px var(--go-s-16);
+  align-items: baseline;
+}
+
+.go-dl dt {
+  color: var(--ks-text-faint);
+  font-size: var(--go-t-11);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.go-dl dd {
+  color: var(--ks-text);
+  font-size: var(--go-t-13);
+  overflow-wrap: break-word;
+}
+
+/* ============================================================
+   UTILITIES. Eighteen of them, deliberately. This is not a
+   framework and it must not grow into one: if a rule is used
+   three times in one view, it belongs to that view's class.
+   ============================================================ */
+.u-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.u-nowrap { white-space: nowrap; }
+
+.u-truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.u-clamp-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.u-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.u-muted { color: var(--ks-text-muted); }
+
+/* --ks-text-faint is the lightest ink that still clears 4.5:1 on paper. */
+.u-faint { color: var(--ks-text-faint); }
+
+.u-right { text-align: end; }
+
+.u-row {
+  display: flex;
+  align-items: center;
+  gap: var(--go-s-8);
+  min-width: 0;
+}
+
+.u-stack-8 > * + * { margin-top: var(--go-s-8); }
+.u-stack-16 > * + * { margin-top: var(--go-s-16); }
+.u-stack-24 > * + * { margin-top: var(--go-s-24); }
+
+.u-gap-8 { gap: var(--go-s-8); }
+.u-gap-12 { gap: var(--go-s-12); }
+
+.u-hide-sm { display: revert; }
+.u-show-sm { display: none; }
+
+.u-mt-24 { margin-top: var(--go-s-24); }
+
+/* ============================================================
+   RESPONSIVE. Structural, not fluid type: the nav collapses,
+   the columns stack, the tables reflow, the touch targets grow.
+   ============================================================ */
+
+/* Desktop: the nav is a details element only so that it can collapse later.
+   Here the disclosure is inert - the summary is hidden and the links always
+   show. Both reveal mechanisms are covered: the modern ::details-content
+   box and the older "UA hides the children" behaviour. */
+@media (min-width: 721px) {
+  details.go-topbar-nav {
+    display: flex;
+  }
+
+  details.go-topbar-nav > summary {
+    display: none;
+  }
+
+  details.go-topbar-nav::details-content {
+    content-visibility: visible;
+    display: contents;
+  }
+
+  details.go-topbar-nav > *:not(summary) {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 960px) {
+  .go-review {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--go-s-24);
+  }
+
+  .go-review-preview {
+    position: static;
+  }
+
+  .go-review-editor {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+    border-top: 1px solid var(--ks-gray-2);
+    padding-top: var(--go-s-16);
+  }
+}
+
+@media (max-width: 720px) {
+  .go-page {
+    padding: var(--go-s-16) var(--go-s-12) var(--go-s-32);
+  }
+
+  /* 16px, or iOS zooms the page the moment a field takes focus. */
+  .go-input,
+  .go-textarea,
+  .go-select {
+    font-size: 16px;
+    min-height: var(--go-touch-h);
+  }
+
+  .go-btn,
+  .go-filter,
+  .go-topbar-link,
+  .go-chip-remove,
+  .go-alert-action {
+    min-height: var(--go-touch-h);
+  }
+
+  .go-btn-sm {
+    min-height: 36px;
+  }
+
+  /* The nav becomes a real disclosure. */
+  .go-topbar-nav {
+    position: relative;
+    margin-inline-start: auto;
+  }
+
+  .go-topbar-nav > summary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: var(--go-touch-h);
+    height: var(--go-touch-h);
+    border-radius: var(--ks-radius-sm);
+    color: var(--ks-text);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .go-topbar-nav > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .go-topbar-nav[open] {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0 var(--go-s-12) var(--go-s-8);
+    background: var(--ks-paper-deep);
+    border-bottom: 1px solid var(--ks-rule);
+  }
+
+  .go-topbar-nav[open] > summary {
+    align-self: flex-end;
+  }
+
+  .go-topbar-nav[open]::details-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .go-topbar-nav .go-topbar-link {
+    justify-content: flex-start;
+    border-radius: var(--ks-radius-sm);
+  }
+
+  .go-topic {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--go-s-8);
+    padding-inline: 0;
+  }
+
+  .go-topic-rail {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--go-s-12);
+  }
+
+  .go-relevance {
+    flex-direction: row;
+    width: auto;
+  }
+
+  .go-relevance span {
+    width: 18px;
+    height: 4px;
+  }
+
+  /* Gate 1 decisions are taken with a thumb here. */
+  .go-verdict {
+    width: 100%;
+  }
+
+  .go-verdict-btn {
+    min-height: var(--go-touch-h);
+  }
+
+  .go-trace-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .go-imagepick {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .go-li,
+  .go-li-card {
+    max-width: 390px;
+  }
+
+  .go-li-actions {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+  }
+
+  /* Tables reflow into labelled rows. Every td carries data-label. */
+  .go-table thead,
+  .go-perf thead,
+  .go-runs thead {
+    display: none;
+  }
+
+  .go-table tr,
+  .go-perf tr,
+  .go-runs tr {
+    display: block;
+    padding: var(--go-s-8) 0;
+    border-bottom: 1px solid var(--ks-rule);
+  }
+
+  .go-table td,
+  .go-perf td,
+  .go-runs td {
+    display: grid;
+    grid-template-columns: 38% minmax(0, 1fr);
+    gap: var(--go-s-8);
+    padding: 3px 0;
+    border-bottom: 0;
+    text-align: start;
+  }
+
+  .go-table td::before,
+  .go-perf td::before,
+  .go-runs td::before {
+    content: attr(data-label);
+    color: var(--ks-text-muted);
+    font-size: var(--go-t-11);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .go-perf td:not(:first-child),
+  .go-perf th:not(:first-child),
+  .go-table td.u-num {
+    text-align: start;
+  }
+
+  .go-chart--wide {
+    display: none;
+  }
+
+  .go-chart--narrow {
+    display: block;
+  }
+
+  .go-alert {
+    grid-template-columns: 18px minmax(0, 1fr);
+  }
+
+  .go-alert-action {
+    grid-column: 2;
+  }
+
+  .go-log-line {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .u-hide-sm { display: none; }
+  .u-show-sm { display: revert; }
+}
+
+/* ============================================================
+   REDUCED MOTION. Nothing here animates for pleasure, so the
+   honest answer is to switch transitions off entirely.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

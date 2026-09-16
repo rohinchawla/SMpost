@@ -1,0 +1,36 @@
+# Build output. Regenerate with: npm run package
+dist/
+
+# Local install state. These are written on the machine the app runs on, and
+# their presence in an upload is what makes install.php refuse to run.
+webapp/config/config.php
+webapp/config/installed.lock
+webapp/storage/install-token.txt
+webapp/storage/install-attempts.json
+
+# Runtime artefacts. The images here are copies the seeder wrote from
+# samples/images/; regenerate with: npm run seed
+webapp/storage/logs/*
+webapp/storage/media/*
+!webapp/storage/**/.htaccess
+
+# The impeccable design system, downloaded as a reference while building the
+# screens. 68 MB of someone else's repository with its own licence and its own
+# home; the token values it defines were copied into webapp/public/assets/app.css,
+# so nothing here needs it at runtime.
+impeccable-main/
+impeccable-main.zip
+
+# What the mock server wrote while the suite ran: 242 one-pixel PNGs from the
+# image-upload tests. Recreated by npm test.
+mock-api/media/
+
+# Scratch
+work/
+*.db
+*.db-shm
+*.db-wal
+
+# Node, though this project deliberately has no dependencies
+node_modules/
+npm-debug.log*
